@@ -9,7 +9,7 @@ import numpy as np
 
 class NewtonsMethod(OptMethod):
     def __init__(self, prob, x0, *args):
-        super().__init__(prob, x0, *args)
+        super().__init__(prob, x0, *args) 
 
         # the function used to estimate the hessian at some point
         self.hessian = _numerical_multivariate_hessian(self._func)

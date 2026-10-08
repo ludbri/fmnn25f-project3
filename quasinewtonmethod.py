@@ -67,10 +67,10 @@ class SymmetricBroyden(QuasiNewtonMethod):
         delta_k = self.x - self.x_prev # x_(k+1) - x_k
         gamma_k = self.prob.grad(self.x) - self.prob.grad(self.x_prev)
 
-        u_k = delta_k - self.Hgamma_k
-        a_k = 1/(np.transpose(u)*lambda_k)
+        u_k = delta_k - self.H@gamma_k
+        a_k = 1/(u_k@gamma_k)
         
-        self.H = self.H + a_k*u_k*np.transpose(u_k)
+        self.H = self.H + a_k*np.outer(u_k, u_k)
 
 
 class DFP(QuasiNewtonMethod):
@@ -81,7 +81,9 @@ class DFP(QuasiNewtonMethod):
         delta_k = self.x - self.x_prev # x_(k+1) - x_k
         gamma_k = self.prob.grad(self.x) - self.prob.grad(self.x_prev)
 
-        self.H = self.H + delta_k*np.transpose(delta_k)/(np.transpose(delta_k)*gamma_k) - (self.H*gamma_k*np.transpose(gamma_k)*H)/(np.transpose(gamma_k)*self.H*gamma_k)
+        self.H = (self.H + 
+                    np.outer(delta_k, delta_k)/(delta_k@gamma_k) - 
+                    np.outer(self.H @ gamma_k, gamma_k @ self.H)/(gamma_k@self.H@gamma_k))
 
 
 class BFGS(QuasiNewtonMethod):
@@ -92,8 +94,8 @@ class BFGS(QuasiNewtonMethod):
         delta_k = self.x - self.x_prev # x_(k+1) - x_k
         gamma_k = self.prob.grad(self.x) - self.prob.grad(self.x_prev)
 
-        term_1 = (1 + ((np.transpose(gamma_k)*self.H*gamma_k)/(np.transpose(delta_k)*gamma_k)))*((delta_k*np.transpose(delta_k))/(np.transpose(delta_k)*gamma_k))
-        term_2 = (delta_k*np.transpose(gamma_k)*self.H + self.H*gamma_k*np.transpose(delta_k))/(np.transpose(delta)*gamma_k)
+        term_1 = ((1 + (gamma_k@self.H@gamma_k)/(delta_k@gamma_k))/(delta_k@gamma_k))*np.outer(delta_k, delta_k)
+        term_2 = (np.outer(delta_k,gamma_k@self.H) + np.outer(self.H@gamma_k, delta_k))/(delta_k@gamma_k)
     
         self.H = self.H + term_1 - term_2 
         
