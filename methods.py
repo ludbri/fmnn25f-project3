@@ -24,6 +24,7 @@ class OptMethod:
         self.x_prev = self.x.copy()
         self._func = getattr(self.prob, 'f', self.prob)
         self.f_prev = self._func(self.x)
+        self.grad_prev = None
 
     def specific_solve(self):
         """

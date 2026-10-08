@@ -3,7 +3,7 @@ import numpy as np
 
 from problem import OptProblem
 from methods import OptMethod
-
+from quasinewtonmethod import GoodBroyden
 
 def samplefunc(x: np.array):
     x = np.asarray(x)
@@ -13,5 +13,6 @@ def samplefunc(x: np.array):
     return x@A@x.T + b@x 
 
 prob = OptProblem(samplefunc, input_shape=2)
+gb = GoodBroyden(prob, np.array([1.0, 1.0]))
 
-print(prob([0,1]))
+print(gb.specific_solve())
