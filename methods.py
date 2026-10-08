@@ -1,5 +1,6 @@
 
 from problem import OptProblem
+import numpy as np
 
 
 class OptMethod:
@@ -20,8 +21,9 @@ class OptMethod:
         self.x = x0  # current solution
 
         # values of previous solution
-        self.x_prev = x0
-        self.f_prev = self.prob(x0)
+        self.x_prev = self.x.copy()
+        self._func = getattr(self.prob, 'f', self.prob)
+        self.f_prev = self._func(self.x)
 
     def specific_solve(self):
         """
@@ -36,14 +38,26 @@ class OptMethod:
         residual tol is that the change in function value between iterations should be sufficiently small.
         cauchy tol is that the change in solution value between iterations should be sufficiently small.
         '''
-        fdiff = 0
-        xdiff = 0
+        fdiff = float('inf')
+        xdiff = float('inf')
         steps = 0
-        while fdiff <= residual_tol and xdiff <= cauchy_tol and steps < max_steps:
+        while fdiff > residual_tol and xdiff > cauchy_tol and steps < max_steps:
             steps += 1
-            ... = self.specific_solve()
+            
+            # take a step using subclass method
+            x_new = self.specific_solve()
+            f_new = self._func(x_new)
+            
+            # compute residual and cauchy tolerance
+            fdiff = np.abs(f_new - self.f_prev)
+            xdiff = np.linalg.norm(x_new - self.x)
+            
+            # Update state for the next iteration
+            self.x_prev = self.x.copy()
+            self.f_prev = f_new
+            self.x = x_new.copy()
 
-        return None
+        return self.x
     
     '''
     def hessian(self):

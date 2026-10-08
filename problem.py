@@ -111,7 +111,7 @@ def _numerical_multivariate_hessian(func: Func, eps: float = 1e-4) -> FuncGrad:
                 hess[i, j] = val
                 hess[j, i] = val
 
-        # 3. Check symmetry and apply symmetrizing step: G := 0.5 * (G + G^T)
+        # Check symmetry and apply symmetrizing step: G := 0.5 * (G + G^T)
         if not np.allclose(hess, hess.T, rtol=1e-5, atol=1e-8):
             hess = 0.5 * (hess + hess.T)
         else:

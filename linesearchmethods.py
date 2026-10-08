@@ -1,23 +1,34 @@
 
 
-from problem import OptProblem, _numerical_multivariate_hessian
+from problem import OptProblem, _numerical_multivariate_hessian, _numerical_multivariate_gradient
 from methods import OptMethod
-
+import numpy as np
 
 
 
 
 class NewtonsMethod(OptMethod):
-    def __init__(self, prob, *args):
-        super.__init__(self, prob, args)
+    def __init__(self, prob, x0, *args):
+        super.__init__(self, prob, x0, *args)
 
         # the function used to estimate the hessian at some point
-        self.hessian = _numerical_multivariate_hessian(self.prob.f)
+        self.hessian = _numerical_multivariate_hessian(self._func)
+        
+        if hasattr(self.prob, 'grad'):
+            self.gradient = self.prob.grad
+        else:
+            self.gradient = _numerical_multivariate_gradient(self._func)
 
     def specific_solve(self, x):
-        # newton method
-        ...
-        hess = self.hessian(x)
+        # Evaluate gradient and Hessian at x
+        g = self.gradient(x)
+        G = self.hessian(x)
+        
+        # solve linear equation G * s = -g for the step direction 's'
+        step = np.linalg.solve(G, -g)
+        
+        return self.x + step
+        
 
 
 
