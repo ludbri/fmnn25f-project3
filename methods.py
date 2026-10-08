@@ -42,11 +42,14 @@ class OptMethod:
         fdiff = float('inf')
         xdiff = float('inf')
         steps = 0
+
         while fdiff > residual_tol and xdiff > cauchy_tol and steps < max_steps:
+            print("iteration", steps)
             steps += 1
             
             # take a step using subclass method
             x_new = self.specific_solve()
+            print()
             f_new = self._func(x_new)
             
             # compute residual and cauchy tolerance
@@ -57,6 +60,11 @@ class OptMethod:
             self.x_prev = self.x.copy()
             self.f_prev = f_new
             self.x = x_new.copy()
+
+
+            if fdiff < residual_tol:    print("fdiff > residual_tol", fdiff)
+            if xdiff < cauchy_tol:      print("xdiff > cauchy_tol", xdiff)
+            if steps > max_steps:       print("steps < max_steps", steps)
 
         return self.x
     

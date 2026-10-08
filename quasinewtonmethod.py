@@ -1,26 +1,28 @@
 from methods import OptMethod 
 from linesearchmethods import NewtonWithLineSearchMethod
 import numpy as np
-
+import scipy
 
 class QuasiNewtonMethod(NewtonWithLineSearchMethod):
     def __init__(self, f, *args):
         super().__init__(f, *args)
-        self.H = np.ones(self.prob.input_shape)
+        self.H = np.eye(self.prob.input_shape)
 
     def specific_solve(self):
         """
         Defined in each subclass
         """
         #TODO: Stopping criterion
-        max_iterations = 10
-        i = 0
-        while(i<max_iterations):
-            s_k = -1*self.H*self.prob.grad(self.x)
-            alfa_k = self.linesearch() # finns det verkligen linesearch??
-            self.x = self.x + alfa_k*s_k
-            self.H = self.update_hessian()
-            i+=1
+        
+        s_k = -1*(self.H@self.gradient(self.x))
+        alfa_k = 0.1 # finns det verkligen linesearch??
+        print("s_k", s_k)
+        x_new = self.x + alfa_k*s_k
+        print("x", self.x)
+        self.update_hessian()
+        print("H:", self.H)
+
+        return x_new
 
     
     def update_hessian(self):
@@ -33,8 +35,6 @@ class QuasiNewtonMethod(NewtonWithLineSearchMethod):
         pass
 
 
-    
-
 
 class GoodBroyden(QuasiNewtonMethod):
     def __init__(self, f, *args):
@@ -42,11 +42,10 @@ class GoodBroyden(QuasiNewtonMethod):
 
     def update_hessian(self):
         delta_k = self.x - self.x_prev # x_(k+1) - x_k
-        gamma_k = self.prob.grad(self.x) - self.prob.grad(self.x_prev)
-
-        self.H = self.H + (np.outer((delta_k - self.H@gamma_k), (delta_k@self.H))/(delta_k@self.H@gamma_k))
-
-
+        gamma_k = self.gradient(self.x) - self.gradient(self.x_prev)
+        numerator = delta_k@(self.H@gamma_k)
+        self.H = self.H + (np.outer((delta_k - self.H@gamma_k), (delta_k@self.H))/(numerator))
+        return self
 
 class BadBroyden(QuasiNewtonMethod):
     def __init__(self, f, *args):
@@ -54,7 +53,7 @@ class BadBroyden(QuasiNewtonMethod):
 
     def update_hessian(self):
             delta_k = self.x - self.x_prev # x_(k+1) - x_k
-            gamma_k = self.prob.grad(self.x) - self.prob.grad(self.x_prev)
+            gamma_k = self.gradient(self.x) - self.gradient(self.x_prev)
     
             self.H = self.H + (np.outer(delta_k - self.H @ gamma_k, gamma_k)/(gamma_k@gamma_k))
 
@@ -65,7 +64,7 @@ class SymmetricBroyden(QuasiNewtonMethod):
 
     def update_hessian(self):
         delta_k = self.x - self.x_prev # x_(k+1) - x_k
-        gamma_k = self.prob.grad(self.x) - self.prob.grad(self.x_prev)
+        gamma_k = self.gradient(self.x) - self.gradient(self.x_prev)
 
         u_k = delta_k - self.H@gamma_k
         a_k = 1/(u_k@gamma_k)
@@ -79,7 +78,7 @@ class DFP(QuasiNewtonMethod):
 
     def update_hessian(self):
         delta_k = self.x - self.x_prev # x_(k+1) - x_k
-        gamma_k = self.prob.grad(self.x) - self.prob.grad(self.x_prev)
+        gamma_k = self.gradient(self.x) - self.gradient(self.x_prev)
 
         self.H = (self.H + 
                     np.outer(delta_k, delta_k)/(delta_k@gamma_k) - 
@@ -89,15 +88,25 @@ class DFP(QuasiNewtonMethod):
 class BFGS(QuasiNewtonMethod):
     def __init__(self, f, *args):
         super().__init__(f, *args)
+        self.approx_error = np.array([])
 
     def update_hessian(self):
+
         delta_k = self.x - self.x_prev # x_(k+1) - x_k
-        gamma_k = self.prob.grad(self.x) - self.prob.grad(self.x_prev)
+        gamma_k = self.gradient(self.x) - self.gradient(self.x_prev)
 
         term_1 = ((1 + (gamma_k@self.H@gamma_k)/(delta_k@gamma_k))/(delta_k@gamma_k))*np.outer(delta_k, delta_k)
         term_2 = (np.outer(delta_k,gamma_k@self.H) + np.outer(self.H@gamma_k, delta_k))/(delta_k@gamma_k)
     
         self.H = self.H + term_1 - term_2 
+        np.append(self.approx_error, self.test_BFGS_approx())
+
+    def test_BFGS_approx(self):
+        exact_H =scipy.linalg.inv(scipy.differentiate.hessian(self.prob.f, self.x))
+        approx_error = np.norm(exact_H - self.H, 'fro')
+        return approx_error
+
+
         
 
         
