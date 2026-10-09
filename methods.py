@@ -5,7 +5,7 @@ import numpy as np
 
 class OptMethod:
     '''
-    General class for optmiziation method, this class is inherited by all optimizing methods
+    General class for optmization method, this class is inherited from by all optimizing methods
 
     Parameters
     ----------    
@@ -16,7 +16,6 @@ class OptMethod:
         # TODO: move x0 to the solve method instead of the initializer.
     '''
     def __init__(self, prob: OptProblem, x0: np.array):
-        # prob(x)  = self.prob.f(x)
         self.prob = prob
         self.x = np.asarray(x0, dtype=float)  # current solution
 

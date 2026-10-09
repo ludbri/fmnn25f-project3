@@ -110,8 +110,8 @@ def _numerical_multivariate_hessian(func: Func, eps: float = 1e-4) -> FuncGrad:
                 hess[j, i] = val
 
         # Check symmetry and apply symmetrizing step: G := 0.5 * (G + G^T)
-        # TODO: why do we check for symmetry, and then apply the symmetrization either way?
-        # Also, with the way hess is given values above, it is always symmetric.
+        # TODO: Why do we check for symmetry, and then apply symmetrization either way?
+        #       Also, with the way hess is given values above, it is always symmetric.
         if not np.allclose(hess, hess.T, rtol=1e-5, atol=1e-8):
             hess = 0.5 * (hess + hess.T)
         else:

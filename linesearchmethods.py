@@ -1,5 +1,5 @@
 
-from problem import OptProblem, _numerical_multivariate_hessian, _numerical_multivariate_gradient
+from problem import _numerical_multivariate_hessian, _numerical_multivariate_gradient
 from methods import OptMethod
 import numpy as np
 
@@ -29,8 +29,8 @@ class NewtonsMethod(OptMethod):
         
 
 class NewtonWithLineSearchMethod(NewtonsMethod):
-    def __init__(self, f, x0):
-        super().__init__(f, x0)
+    def __init__(self, prob, x0):
+        super().__init__(prob, x0)
 
     def find_descent_direction(self):
         grad = self.gradient(self.x)
@@ -63,7 +63,7 @@ class NewtonWithLineSearchMethod(NewtonsMethod):
         x1 = right-r*(right-left)
         x2 = left+r*(right-left)
         f1, f2 = phi(x1), phi(x2)
-        # TODO: stopping criteria!
+        # TODO: other stopping criteria!
         for _ in range(200):
             if right-left < 1e-10:
                 break
@@ -83,13 +83,62 @@ class NewtonWithLineSearchMethod(NewtonsMethod):
         return self.x + alpha*dir
 
 
+class NewtonWithPowellWolfe(NewtonWithLineSearchMethod):
+    def __init__(self, prob, x0, sigma, rho, alpha_start):
+        super().__init__(prob, x0)
+        assert 0<sigma<0.5
+        assert sigma<rho<1
+        assert alpha_start > 0
+        self.sigma = sigma
+        self.rho = rho
+        self.alpha_start = alpha_start
+    
+    def linesearch(self, dir):
+        """
+        Following the lecture slides on Powell-Wolfe.
+        TODO: this may not be quite right. The assignment asks for:
+         Write an inexact line search method based on the Goldstein/Wolfe conditions
+         (Algorithm: Fletcher pp.34ff in the additional course materia
+        """
+        phi = lambda a: self._func(self.x + a*dir)
+        phi_grad = lambda a: np.dot(self.gradient(self.x + a*dir), dir)
+        f_0 = phi(0)
+        f_grad_0 = phi_grad(0)
+
+        sigma = self.sigma
+        rho = self.rho
+        am = self.alpha_start
+
+        def armijo(a):
+            return phi(a) <= f_0 + sigma * a * f_grad_0
+
+        # Algorithm from lecture slides on optimization:
+        while not armijo(am):
+            am /= 2
+
+        ap=am
+        while armijo(ap):
+            ap *= 2
+
+        def powell_wolfe(a):
+            return phi_grad(a) >= rho * f_grad_0
+
+        while not powell_wolfe(am):
+            a0 = (ap+am)/2
+            if armijo(a0):
+                am = a0
+            else:
+                ap = a0
+        return am
 
 
-
-
-def test_exact_linesearch():
+def test_exact_linesearch(exact=True):
     problem = rosenbrock_problem
-    method = NewtonWithLineSearchMethod(problem, x0=[-1.2, 1.0])
+    if exact:
+        method = NewtonWithLineSearchMethod(problem, x0=[-1.2, 1.0])
+    else:
+        method = NewtonWithPowellWolfe(problem, x0=[-1.2, 1.0], sigma=0.1, rho=0.5, alpha_start=1)
+
     n = 20
     residual = 1e-8
     cauchy = 1e-5
@@ -108,7 +157,7 @@ def test_exact_linesearch():
     plt.plot(h[:,0], h[:,1], "o-")
     plt.plot(1, 1, "*", markersize=14)
     plt.xlabel("x1"); plt.ylabel("x2")
-    plt.title("Rosenbrock - Newton with exact line search")
+    plt.title(f"Rosenbrock - Newton with {"exact" if exact else "Powell-Wolfe"} line search")
     plt.tight_layout()
     plt.savefig("rosenbrock_newton_linesearch.png", dpi=150)
     plt.show()
@@ -118,4 +167,4 @@ if __name__ == "__main__":
     from rosenbrock import rosenbrock, rosenbrock_grad, rosenbrock_problem
     import matplotlib.pyplot as plt
 
-    test_exact_linesearch()
+    test_exact_linesearch(exact=False)

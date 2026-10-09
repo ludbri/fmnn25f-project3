@@ -5,7 +5,8 @@ from problem import OptProblem
 from methods import OptMethod
 from quasinewtonmethod import *
 
-# TODO: use following?
+# TODO: use following imports to have one definition?
+#  - I believe the implementation here may be the wrong version of Rosenbrock.
 # from rosenbrock import rosenbrock, rosenbrock_grad
 
 A = np.eye(2)

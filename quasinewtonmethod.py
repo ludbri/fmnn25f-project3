@@ -3,8 +3,8 @@ import numpy as np
 import scipy
 
 class QuasiNewtonMethod(NewtonWithLineSearchMethod):
-    def __init__(self, f, x0):
-        super().__init__(f, x0)
+    def __init__(self, prob, x0):
+        super().__init__(prob, x0)
         self.H = np.eye(self.prob.input_shape)
 
     def specific_solve(self):
@@ -42,8 +42,8 @@ class QuasiNewtonMethod(NewtonWithLineSearchMethod):
 
 
 class GoodBroyden(QuasiNewtonMethod):
-    def __init__(self, f, x0):
-            super().__init__(f, x0)
+    def __init__(self, prob, x0):
+            super().__init__(prob, x0)
 
     def update_hessian(self, x_new):
         delta_k = x_new - self.x # x_(k+1) - x_k
@@ -53,8 +53,8 @@ class GoodBroyden(QuasiNewtonMethod):
         return self
 
 class BadBroyden(QuasiNewtonMethod):
-    def __init__(self, f, x0):
-        super().__init__(f, x0)
+    def __init__(self, prob, x0):
+        super().__init__(prob, x0)
 
     def update_hessian(self, x_new):
             delta_k = x_new - self.x 
@@ -64,8 +64,8 @@ class BadBroyden(QuasiNewtonMethod):
 
 
 class SymmetricBroyden(QuasiNewtonMethod):
-    def __init__(self, f, x0):
-        super().__init__(f, x0)
+    def __init__(self, prob, x0):
+        super().__init__(prob, x0)
 
     def update_hessian(self, x_new):
         delta_k = x_new - self.x 
@@ -78,8 +78,8 @@ class SymmetricBroyden(QuasiNewtonMethod):
 
 
 class DFP(QuasiNewtonMethod):
-    def __init__(self, f, x0):
-        super().__init__(f, x0)
+    def __init__(self, prob, x0):
+        super().__init__(prob, x0)
 
     def update_hessian(self, x_new):
         delta_k = x_new - self.x 
@@ -91,8 +91,8 @@ class DFP(QuasiNewtonMethod):
 
 
 class BFGS(QuasiNewtonMethod):
-    def __init__(self, f, x0):
-        super().__init__(f, x0)
+    def __init__(self, prob, x0):
+        super().__init__(prob, x0)
         self.approx_error = []
 
     def update_hessian(self, x_new):
