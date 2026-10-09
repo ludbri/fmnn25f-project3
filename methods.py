@@ -11,14 +11,14 @@ class OptMethod:
     ----------    
         prob: OptProblem
             The Optimization Problem to solve
-        x0: float, optional
-            The current solution
+        x0: float
+            The starting solution
+        # TODO: move x0 to the solve method instead of the initializer.
     '''
-    def __init__(self, prob: OptProblem, x0, *args):
-        ...
+    def __init__(self, prob: OptProblem, x0: np.array):
         # prob(x)  = self.prob.f(x)
         self.prob = prob
-        self.x = x0  # current solution
+        self.x = np.asarray(x0, dtype=float)  # current solution
 
         # values of previous solution
         self.x_prev = self.x.copy()
@@ -41,14 +41,16 @@ class OptMethod:
         '''
         fdiff = float('inf')
         xdiff = float('inf')
-        steps = 0
+        self.steps = 0
+        self.history = [self.x.copy()]  # history of x values
 
-        while fdiff > residual_tol and xdiff > cauchy_tol and steps < max_steps:
-            print("iteration", steps)
-            steps += 1
+        while fdiff > residual_tol and xdiff > cauchy_tol and self.steps < max_steps:
+            print("iteration", self.steps)
+            self.steps += 1
             
             # take a step using subclass method
             x_new = self.specific_solve()
+            self.history.append(x_new)
             print()
             f_new = self._func(x_new)
             
@@ -64,18 +66,9 @@ class OptMethod:
 
             if fdiff < residual_tol:    print("fdiff > residual_tol", fdiff)
             if xdiff < cauchy_tol:      print("xdiff > cauchy_tol", xdiff)
-            if steps > max_steps:       print("steps < max_steps", steps)
+            if self.steps > max_steps:       print("steps < max_steps", self.steps)
 
         return self.x
-    
-    '''
-    def hessian(self):
-        """
-        Estimate the hessian of the function according to the current method.
-
-        NOTE: this is moved to the Newtons method class and the line search methods.
-        """
-    '''
 
 
 

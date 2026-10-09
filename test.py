@@ -5,6 +5,9 @@ from problem import OptProblem
 from methods import OptMethod
 from quasinewtonmethod import *
 
+# TODO: use following?
+# from rosenbrock import rosenbrock, rosenbrock_grad
+
 A = np.eye(2)
 b = np.array([1,1])
 
