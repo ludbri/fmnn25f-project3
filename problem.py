@@ -12,7 +12,7 @@ def _numerical_multivariate_gradient(func: Func, eps: float = 1e-6) -> FuncGrad:
     Computes the gradient of a scalar-valued multivariate function f: R^n -> R
     using the central difference formula: ∂f/∂x_i ≈ (f(x + h*e_i) - f(x - h*e_i)) / (2 * h).
 
-    # TODO: vectorize with np.eye?
+    # TODO: vectorize using np.eye together with .apply(axis=1)?
 
     Parameters
     ----------
@@ -41,7 +41,7 @@ def _numerical_multivariate_gradient(func: Func, eps: float = 1e-6) -> FuncGrad:
     return func_grad
 
 
-def _numerical_multivariate_hessian(func: Func, eps: float = 1e-4) -> FuncGrad:
+def numerical_multivariate_hessian(func: Func, eps: float = 1e-4) -> FuncGrad:
     """
     Computes the Hessian matrix of a scalar-valued multivariate function f: R^n -> R
     using central finite differences and applies a symmetrizing step G := 0.5 * (G + G^T).

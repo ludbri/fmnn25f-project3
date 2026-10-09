@@ -5,8 +5,8 @@ from problem import OptProblem
 from methods import OptMethod
 from quasinewtonmethod import *
 
-# TODO: use following imports to have one definition?
-#  - I believe the implementation here may be the wrong version of Rosenbrock.
+# TODO: use the following imports to have one shared definition?
+#  - I also believe the implementation here may be the wrong version of Rosenbrock.
 # from rosenbrock import rosenbrock, rosenbrock_grad
 
 A = np.eye(2)
@@ -24,24 +24,27 @@ print(A)
 print(b)
 prob = OptProblem(rosenbrock, input_shape=2)
 
-good_broyden = GoodBroyden(prob, np.array([1.0, 1.0]))
-bad_broyden = BadBroyden(prob, np.array([1.0, 1.0]))
-sym_broyde = SymmetricBroyden(prob, np.array([1.0, 1.0]))
-dfp = DFP(prob, np.array([1.0, 1.0]))
-bfgs = BFGS(prob, np.array([1.0, 1.0]))
+good_broyden = GoodBroyden(prob)
+bad_broyden = BadBroyden(prob)
+sym_broyde = SymmetricBroyden(prob)
+dfp = DFP(prob)
+bfgs = BFGS(prob)
 
-n = 20
-residual = 1e-8
-cauchy = 1e-5
+kwargs = {
+    "x0" : np.array([-1.2, 1.0]),
+    "residual_tol" : 1e-8,
+    "cauchy_tol" : 1e-5,
+    "max_steps" : 20
+}
 print("Good Broyden")
-good_broyden.solve(residual,cauchy,n)
+good_broyden.solve(**kwargs)
 print("Bad Broyden")
-bad_broyden.solve(residual,cauchy,n)
+bad_broyden.solve(**kwargs)
 print("Symmetric Broyden")
-sym_broyde.solve(residual,cauchy,n)
+sym_broyde.solve(**kwargs)
 print("DFP")
-dfp.solve(residual,cauchy,n)
+dfp.solve(**kwargs)
 print("BFGS")
-bfgs.solve(residual,cauchy,n)
+bfgs.solve(**kwargs)
 # Task 12
 print("Approx Error", bfgs.approx_error)

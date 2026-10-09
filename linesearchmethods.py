@@ -1,22 +1,10 @@
 
-from problem import _numerical_multivariate_hessian, _numerical_multivariate_gradient
+from problem import numerical_multivariate_hessian, _numerical_multivariate_gradient
 from methods import OptMethod
 import numpy as np
 
 
 class NewtonsMethod(OptMethod):
-    def __init__(self, prob, x0):
-        super().__init__(prob, x0) 
-
-        # the function used to estimate the hessian at some point
-        self.hessian = _numerical_multivariate_hessian(self._func)
-        self.gradient = self.prob.grad
-        
-        # if hasattr(self.prob, 'grad'):
-        #     self.gradient = self.prob.grad
-        # else:
-        #     self.gradient = _numerical_multivariate_gradient(self._func)
-
     def specific_solve(self):
         # Evaluate gradient and Hessian at current x
         g = self.gradient(self.x)
@@ -29,9 +17,6 @@ class NewtonsMethod(OptMethod):
         
 
 class NewtonWithLineSearchMethod(NewtonsMethod):
-    def __init__(self, prob, x0):
-        super().__init__(prob, x0)
-
     def find_descent_direction(self):
         grad = self.gradient(self.x)
         hess = self.hessian(self.x)
@@ -46,7 +31,7 @@ class NewtonWithLineSearchMethod(NewtonsMethod):
         return dir
 
     def linesearch(self, dir):
-        phi = lambda a: self._func(self.x + a*dir)
+        phi = lambda a: self.prob(self.x + a*dir)
         # Bracket the 1-D minimum.
         b = 1.0
         while phi(b) >= phi(0.0) and b > 1e-12:
@@ -84,8 +69,8 @@ class NewtonWithLineSearchMethod(NewtonsMethod):
 
 
 class NewtonWithPowellWolfe(NewtonWithLineSearchMethod):
-    def __init__(self, prob, x0, sigma, rho, alpha_start):
-        super().__init__(prob, x0)
+    def __init__(self, prob, sigma, rho, alpha_start):
+        super().__init__(prob)
         assert 0<sigma<0.5
         assert sigma<rho<1
         assert alpha_start > 0
@@ -99,8 +84,10 @@ class NewtonWithPowellWolfe(NewtonWithLineSearchMethod):
         TODO: this may not be quite right. The assignment asks for:
          Write an inexact line search method based on the Goldstein/Wolfe conditions
          (Algorithm: Fletcher pp.34ff in the additional course materia
+
+        Maybe we need to have armijo, goldstein and powell/wolfe rules at the same time? Or just one?
         """
-        phi = lambda a: self._func(self.x + a*dir)
+        phi = lambda a: self.prob(self.x + a*dir)
         phi_grad = lambda a: np.dot(self.gradient(self.x + a*dir), dir)
         f_0 = phi(0)
         f_grad_0 = phi_grad(0)
@@ -135,14 +122,17 @@ class NewtonWithPowellWolfe(NewtonWithLineSearchMethod):
 def test_exact_linesearch(exact=True):
     problem = rosenbrock_problem
     if exact:
-        method = NewtonWithLineSearchMethod(problem, x0=[-1.2, 1.0])
+        method = NewtonWithLineSearchMethod(problem)
     else:
-        method = NewtonWithPowellWolfe(problem, x0=[-1.2, 1.0], sigma=0.1, rho=0.5, alpha_start=1)
+        method = NewtonWithPowellWolfe(problem, sigma=0.1, rho=0.5, alpha_start=1.0)
 
-    n = 20
-    residual = 1e-8
-    cauchy = 1e-5
-    xmin = method.solve(residual,cauchy,n)
+    kwargs = {
+        "x0" : np.array([-1.2, 1.0]),
+        "residual_tol" : 1e-8,
+        "cauchy_tol" : 1e-5,
+        "max_steps" : 20
+    }
+    xmin = method.solve(**kwargs)
     print("Computed minimum:", xmin)
     print("f(x):", rosenbrock(xmin))
     print("Iterations:", method.steps)
@@ -164,7 +154,8 @@ def test_exact_linesearch(exact=True):
 
 
 if __name__ == "__main__":
-    from rosenbrock import rosenbrock, rosenbrock_grad, rosenbrock_problem
+    from rosenbrock import rosenbrock, rosenbrock_problem
     import matplotlib.pyplot as plt
 
+    test_exact_linesearch(exact=True)
     test_exact_linesearch(exact=False)

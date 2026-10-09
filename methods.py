@@ -1,6 +1,7 @@
 
-from problem import OptProblem
 import numpy as np
+
+from problem import OptProblem, numerical_multivariate_hessian
 
 
 class OptMethod:
@@ -11,19 +12,11 @@ class OptMethod:
     ----------    
         prob: OptProblem
             The Optimization Problem to solve
-        x0: float
-            The starting solution
-        # TODO: move x0 to the solve method instead of the initializer.
     '''
-    def __init__(self, prob: OptProblem, x0: np.array):
+    def __init__(self, prob: OptProblem):
         self.prob = prob
-        self.x = np.asarray(x0, dtype=float)  # current solution
-
-        # values of previous solution
-        self.x_prev = self.x.copy()
-        self._func = getattr(self.prob, 'f', self.prob)
-        self.f_prev = self._func(self.x)
-        self.grad_prev = None
+        self.gradient = self.prob.grad
+        self.hessian = numerical_multivariate_hessian(self.prob.f)
 
     def specific_solve(self):
         """
@@ -31,15 +24,20 @@ class OptMethod:
         """
         raise NotImplementedError()
 
-    def solve(self, residual_tol, cauchy_tol, max_steps):
+    def solve(self, x0, residual_tol, cauchy_tol, max_steps):
         '''
         Solve the optimization problem. This function handles stopping criteria
+
+        x0: float
+            The starting solution
 
         residual tol is that the change in function value between iterations should be sufficiently small.
         cauchy tol is that the change in solution value between iterations should be sufficiently small.
         '''
         fdiff = float('inf')
         xdiff = float('inf')
+        self.x = np.asarray(x0, dtype=float)  # current solution
+        f_prev = self.prob(self.x)
         self.steps = 0
         self.history = [self.x.copy()]  # history of x values
 
@@ -51,15 +49,14 @@ class OptMethod:
             x_new = self.specific_solve()
             self.history.append(x_new)
             print()
-            f_new = self._func(x_new)
+            f_new = self.prob(x_new)
             
             # compute residual and cauchy tolerance
-            fdiff = np.abs(f_new - self.f_prev)
+            fdiff = np.abs(f_new - f_prev)
             xdiff = np.linalg.norm(x_new - self.x)
             
             # Update state for the next iteration
-            self.x_prev = self.x.copy()
-            self.f_prev = f_new
+            f_prev = f_new
             self.x = x_new.copy()
 
 
