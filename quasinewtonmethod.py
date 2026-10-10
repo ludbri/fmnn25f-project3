@@ -1,17 +1,18 @@
+from methods import OptMethod 
 from linesearchmethods import NewtonWithLineSearchMethod
 import numpy as np
 import scipy
 
 class QuasiNewtonMethod(NewtonWithLineSearchMethod):
-    def __init__(self, prob):
-        super().__init__(prob)
+    def __init__(self, f, *args):
+        super().__init__(f, *args)
         self.H = np.eye(self.prob.input_shape)
 
     def specific_solve(self):
         """
         Defined in each subclass
         """        
-        def rosenbrock_grad(x):
+        def rosenbrock_grad(x): # remove this after scipy.optimize line search is removed
             x = np.asarray(x)
             return np.asarray([4*x[0]**3 + 2*x[0] + x[1] + 1, x[0] + 2*x[1]])
 
@@ -19,7 +20,9 @@ class QuasiNewtonMethod(NewtonWithLineSearchMethod):
 
         #TODO Remove scipy.optmizie.line_search when the line search is done
         print(np.shape(s_k), np.shape(self.x), type(self.prob.f), type(rosenbrock_grad))
-        alfa_k = scipy.optimize.line_search(self.prob.f, rosenbrock_grad, self.x, s_k)[0]
+        # alfa_k = scipy.optimize.line_search(self.prob.f, rosenbrock_grad, self.x, s_k)[0]
+        dir = self.find_descent_direction()
+        alfa_k = self.linesearch(dir)
         print("s_k", s_k)
         print(alfa_k)
         x_new = self.x + alfa_k*s_k
@@ -33,15 +36,13 @@ class QuasiNewtonMethod(NewtonWithLineSearchMethod):
     def update_hessian(self):
         raise NotImplementedError()
 
-    def find_descent_direction(self):
-        pass
-
-    def linesearch(self, dir):
-        pass
 
 
 
 class GoodBroyden(QuasiNewtonMethod):
+    def __init__(self, f, *args):
+            super().__init__(f, *args)
+
     def update_hessian(self, x_new):
         delta_k = x_new - self.x # x_(k+1) - x_k
         gamma_k = self.gradient(x_new) - self.gradient(self.x)
@@ -50,6 +51,9 @@ class GoodBroyden(QuasiNewtonMethod):
         return self
 
 class BadBroyden(QuasiNewtonMethod):
+    def __init__(self, f, *args):
+        super().__init__(f, *args)
+
     def update_hessian(self, x_new):
             delta_k = x_new - self.x 
             gamma_k = self.gradient(x_new) - self.gradient(self.x)
@@ -58,6 +62,9 @@ class BadBroyden(QuasiNewtonMethod):
 
 
 class SymmetricBroyden(QuasiNewtonMethod):
+    def __init__(self, f, *args):
+        super().__init__(f, *args)
+
     def update_hessian(self, x_new):
         delta_k = x_new - self.x 
         gamma_k = self.gradient(x_new) - self.gradient(self.x)
@@ -69,6 +76,9 @@ class SymmetricBroyden(QuasiNewtonMethod):
 
 
 class DFP(QuasiNewtonMethod):
+    def __init__(self, f, *args):
+        super().__init__(f, *args)
+
     def update_hessian(self, x_new):
         delta_k = x_new - self.x 
         gamma_k = self.gradient(x_new) - self.gradient(self.x)
@@ -79,8 +89,8 @@ class DFP(QuasiNewtonMethod):
 
 
 class BFGS(QuasiNewtonMethod):
-    def __init__(self, prob):
-        super().__init__(prob)
+    def __init__(self, f, *args):
+        super().__init__(f, *args)
         self.approx_error = []
 
     def update_hessian(self, x_new):
