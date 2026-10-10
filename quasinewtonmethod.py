@@ -12,14 +12,10 @@ class QuasiNewtonMethod(NewtonWithLineSearchMethod):
         """
         Defined in each subclass
         """        
-        def rosenbrock_grad(x): # remove this after scipy.optimize line search is removed
-            x = np.asarray(x)
-            return np.asarray([4*x[0]**3 + 2*x[0] + x[1] + 1, x[0] + 2*x[1]])
-
         s_k = -1*(self.H@self.gradient(self.x))
 
         #TODO Remove scipy.optmizie.line_search when the line search is done
-        print(np.shape(s_k), np.shape(self.x), type(self.prob.f), type(rosenbrock_grad))
+        # print(np.shape(s_k), np.shape(self.x), type(self.prob.f), type(rosenbrock_grad))
         # alfa_k = scipy.optimize.line_search(self.prob.f, rosenbrock_grad, self.x, s_k)[0]
         dir = self.find_descent_direction()
         alfa_k = self.linesearch(dir)
@@ -35,6 +31,10 @@ class QuasiNewtonMethod(NewtonWithLineSearchMethod):
     
     def update_hessian(self):
         raise NotImplementedError()
+
+    def find_descent_direction(self):
+        return -self.H @ self.gradient(self.x)
+
 
 
 

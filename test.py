@@ -20,9 +20,14 @@ def rosenbrock(x: np.array):
     x = np.asarray(x)
     return x[0]**4 + x[0]**2 + x[0]*x[1] + x[1]**2 + x[0]
 
+def rosenbrock_grad(x): # remove this after scipy.optimize line search is removed
+        x = np.asarray(x)
+        return np.asarray([4*x[0]**3 + 2*x[0] + x[1] + 1, x[0] + 2*x[1]])
+
+
 print(A)
 print(b)
-prob = OptProblem(rosenbrock, input_shape=2)
+prob = OptProblem(rosenbrock, grad=None, input_shape=2)
 
 good_broyden = GoodBroyden(prob)
 bad_broyden = BadBroyden(prob)
