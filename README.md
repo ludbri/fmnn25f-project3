@@ -1,6 +1,24 @@
 # fmnn25f-project3
 Project files for the third project in the course in advanced numerical algorithms. The purpose is to implement a set of optimization methods.
 
+# File Structure
+- `chebyquad_problem`
+- `newtons_and_linesearch_methods`
+- `optmethods_baseclass`
+- `optproblem_class`
+- `quasinewton_methods`
+- `rosenbrock`
+- `task11`
+- `test`
+
+# Contributions
+- Anna:
+- Annelies
+- Juan
+- Ludwig
+- Tommaso
+
+
 # TODO:
 - readme!
 - in Optproblem TODO (Annelies)
