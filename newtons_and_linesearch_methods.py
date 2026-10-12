@@ -1,6 +1,5 @@
 
-from problem import numerical_multivariate_hessian, _numerical_multivariate_gradient
-from methods import OptMethod
+from optmethods_baseclass import OptMethod
 import numpy as np
 
 
@@ -48,7 +47,6 @@ class NewtonWithLineSearchMethod(NewtonsMethod):
         x1 = right-r*(right-left)
         x2 = left+r*(right-left)
         f1, f2 = phi(x1), phi(x2)
-        # TODO: other stopping criteria!
         for _ in range(200):
             if right-left < 1e-10:
                 break
@@ -80,12 +78,8 @@ class NewtonWithPowellWolfe(NewtonWithLineSearchMethod):
     
     def linesearch(self, dir):
         """
-        Following the lecture slides on Powell-Wolfe.
-        TODO: this may not be quite right. The assignment asks for:
-         Write an inexact line search method based on the Goldstein/Wolfe conditions
-         (Algorithm: Fletcher pp.34ff in the additional course materia
-
-        Maybe we need to have armijo, goldstein and powell/wolfe rules at the same time? Or just one?
+        Implementing a Powell-Wolfe line search based on the lecture notes.
+        Note: the book by Fletcher swaps the use of sigma and rho.
         """
         phi = lambda a: self.prob(self.x + a*dir)
         phi_grad = lambda a: np.dot(self.gradient(self.x + a*dir), dir)
@@ -124,7 +118,9 @@ def test_exact_linesearch(exact=True):
     if exact:
         method = NewtonWithLineSearchMethod(problem)
     else:
-        method = NewtonWithPowellWolfe(problem, sigma=0.1, rho=0.5, alpha_start=1.0)
+        # Implementation here uses lecture's notation.
+        # Note, book uses swapped sigma and rho compared to the optimization lecture.
+        method = NewtonWithPowellWolfe(problem, sigma=0.01, rho=0.1, alpha_start=0.1)
 
     kwargs = {
         "x0" : np.array([-1.2, 1.0]),
@@ -137,11 +133,12 @@ def test_exact_linesearch(exact=True):
     print("f(x):", rosenbrock(xmin))
     print("Iterations:", method.steps)
 
-    h = np.asarray(method.history)
+    h = np.asarray(method.x_history)
     xx = np.linspace(-1.5, 2, 400)
     yy = np.linspace(-1, 3, 400)
-    X, Y = np.meshgrid(xx, yy)
-    Z = 100*(Y-X**2)**2 + (1-X)**2
+    XY = np.meshgrid(xx, yy)
+    X,Y = XY
+    Z = rosenbrock(XY)
 
     plt.contour(X, Y, Z, levels=np.logspace(-1, 3.5, 18))
     plt.plot(h[:,0], h[:,1], "o-")

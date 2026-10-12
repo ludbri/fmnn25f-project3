@@ -1,5 +1,5 @@
-from methods import OptMethod 
-from linesearchmethods import NewtonWithLineSearchMethod
+
+from newtons_and_linesearch_methods import NewtonWithLineSearchMethod
 import numpy as np
 import scipy
 
@@ -14,9 +14,6 @@ class QuasiNewtonMethod(NewtonWithLineSearchMethod):
         """        
         s_k = -1*(self.H@self.gradient(self.x))
 
-        #TODO Remove scipy.optmizie.line_search when the line search is done
-        # print(np.shape(s_k), np.shape(self.x), type(self.prob.f), type(rosenbrock_grad))
-        # alfa_k = scipy.optimize.line_search(self.prob.f, rosenbrock_grad, self.x, s_k)[0]
         dir = self.find_descent_direction()
         alfa_k = self.linesearch(dir)
         print("s_k", s_k)
@@ -101,10 +98,11 @@ class BFGS(QuasiNewtonMethod):
         term_2 = (np.outer(delta_k,gamma_k@self.H) + np.outer(self.H@gamma_k, delta_k))/(delta_k@gamma_k)
     
         self.H = self.H + term_1 - term_2 
-        self.approx_error.append(self.test_BFGS_approx(x_new))
+        # add an optional thing here
+        #self.approx_error.append(self.test_BFGS_approx(x_new))
 
     def test_BFGS_approx(self, x_new):
-        exact_H =scipy.differentiate.hessian(self.prob.f, x_new)
+        exact_H = scipy.differentiate.hessian(self.prob.f, x_new)
         exact_H = scipy.linalg.inv(exact_H.ddf)
 
         approx_error = np.linalg.norm(exact_H - self.H, 'fro')

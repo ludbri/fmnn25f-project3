@@ -7,7 +7,7 @@ Func = Callable[[np.array], float]
 FuncGrad = Callable[[np.array], float]
 
 
-def _numerical_multivariate_gradient(func: Func, eps: float = 1e-6) -> FuncGrad:
+def numerical_multivariate_gradient(func: Func, eps: float = 1e-6) -> FuncGrad:
     """
     Computes the gradient of a scalar-valued multivariate function f: R^n -> R
     using the central difference formula: ∂f/∂x_i ≈ (f(x + h*e_i) - f(x - h*e_i)) / (2 * h).
@@ -145,7 +145,7 @@ class OptProblem:
                  ):
         self.f = f
         self.input_shape = input_shape
-        self.grad = grad if grad is not None else _numerical_multivariate_gradient(f)
+        self.grad = grad if grad is not None else numerical_multivariate_gradient(f)
 
     def __call__(self, x):
         return self.f(x)

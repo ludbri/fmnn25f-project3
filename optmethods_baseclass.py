@@ -1,7 +1,8 @@
 
 import numpy as np
+from time import perf_counter_ns
 
-from problem import OptProblem, numerical_multivariate_hessian
+from optproblem_class import OptProblem, numerical_multivariate_hessian
 
 
 class OptMethod:
@@ -24,7 +25,7 @@ class OptMethod:
         """
         raise NotImplementedError()
 
-    def solve(self, x0, residual_tol, cauchy_tol, max_steps):
+    def solve(self, x0, residual_tol, cauchy_tol, max_steps) -> np.array:
         '''
         Solve the optimization problem. This function handles stopping criteria
 
@@ -39,17 +40,23 @@ class OptMethod:
         self.x = np.asarray(x0, dtype=float)  # current solution
         f_prev = self.prob(self.x)
         self.steps = 0
-        self.history = [self.x.copy()]  # history of x values
+        self.x_history = [self.x.copy()]  # history of x values
+        self.f_history = [f_prev.copy()]
+        self.exec_time_history = [0]
 
         while fdiff > residual_tol and xdiff > cauchy_tol and self.steps < max_steps:
             print("iteration", self.steps)
             self.steps += 1
             
             # take a step using subclass method
+            start = perf_counter_ns()
             x_new = self.specific_solve()
-            self.history.append(x_new)
-            print()
             f_new = self.prob(x_new)
+            end = perf_counter_ns()
+
+            self.x_history.append(x_new)
+            self.f_history.append(f_new)
+            self.exec_time_history.append(self.exec_time_history[-1] + end - start)
             
             # compute residual and cauchy tolerance
             fdiff = np.abs(f_new - f_prev)

@@ -1,13 +1,9 @@
 
 import numpy as np
 
-from problem import OptProblem
-from methods import OptMethod
-from quasinewtonmethod import *
-
-# TODO: use the following imports to have one shared definition?
-#  - I also believe the implementation here may be the wrong version of Rosenbrock.
-# from rosenbrock import rosenbrock, rosenbrock_grad
+from optproblem_class import OptProblem
+from quasinewton_methods import *
+from rosenbrock import rosenbrock, rosenbrock_grad, rosenbrock_problem
 
 A = np.eye(2)
 b = np.array([1,1])
@@ -16,18 +12,11 @@ def samplefunc(x: np.array):
     x = np.asarray(x)
     return x@A@x.T + b@x 
 
-def rosenbrock(x: np.array):
-    x = np.asarray(x)
-    return x[0]**4 + x[0]**2 + x[0]*x[1] + x[1]**2 + x[0]
-
-def rosenbrock_grad(x): # remove this after scipy.optimize line search is removed
-        x = np.asarray(x)
-        return np.asarray([4*x[0]**3 + 2*x[0] + x[1] + 1, x[0] + 2*x[1]])
-
-
 print(A)
 print(b)
-prob = OptProblem(rosenbrock, grad=None, input_shape=2)
+# prob = OptProblem(rosenbrock, grad=None, input_shape=2)
+# prob = OptProblem(rosenbrock, grad=rosenbrock_grad, input_shape=2)
+prob = rosenbrock_problem
 
 good_broyden = GoodBroyden(prob)
 bad_broyden = BadBroyden(prob)

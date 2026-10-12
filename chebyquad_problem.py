@@ -62,7 +62,10 @@ def chebyquad_fcn(x):
         of n sample points
         """
         return sum(T(2. * xj - 1., i) for xj in x) / n
-    return array([approx_integral(i) - e for i,e in enumerate(exint)]) 
+
+    # exls = list(exint)
+    # ls = [approx_integral(i) - e for i,e in enumerate(exls)]
+    return array([approx_integral(i) - e for i,e in enumerate(exls)]) 
 
 def chebyquad(x):
     """            

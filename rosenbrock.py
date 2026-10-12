@@ -1,7 +1,7 @@
 
 import numpy as np
 
-from problem import OptProblem
+from optproblem_class import OptProblem
 
 def rosenbrock(x):
     """
