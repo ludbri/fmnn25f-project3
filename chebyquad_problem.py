@@ -65,7 +65,9 @@ def chebyquad_fcn(x):
 
     # exls = list(exint)
     # ls = [approx_integral(i) - e for i,e in enumerate(exls)]
-    return array([approx_integral(i) - e for i,e in enumerate(exls)]) 
+    # return array(ls)
+
+    return array([approx_integral(i) - e for i,e in enumerate(exint)]) 
 
 def chebyquad(x):
     """            
