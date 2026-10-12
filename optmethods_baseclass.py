@@ -45,7 +45,7 @@ class OptMethod:
         self.exec_time_history = [0]
 
         while fdiff > residual_tol and xdiff > cauchy_tol and self.steps < max_steps:
-            print("iteration", self.steps)
+            # print("iteration", self.steps)
             self.steps += 1
             
             # take a step using subclass method
