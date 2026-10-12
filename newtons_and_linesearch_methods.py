@@ -69,8 +69,8 @@ class NewtonWithLineSearchMethod(NewtonsMethod):
 
 
 class NewtonWithPowellWolfe(NewtonWithLineSearchMethod):
-    def __init__(self, prob, sigma, rho, alpha_start):
-        super().__init__(prob)
+    def __init__(self, prob, sigma, rho, alpha_start, *args, **kwargs):
+        super().__init__(prob, *args, **kwargs)
         assert 0<sigma<0.5
         assert sigma<rho<1
         assert alpha_start > 0
