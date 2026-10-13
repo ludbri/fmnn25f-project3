@@ -1,6 +1,6 @@
 
 import numpy as np
-from typing import Callable
+from typing import Callable, Optional
 
 
 Func = Callable[[np.array], float]
@@ -11,8 +11,6 @@ def numerical_multivariate_gradient(func: Func, eps: float = 1e-6) -> FuncGrad:
     """
     Computes the gradient of a scalar-valued multivariate function f: R^n -> R
     using the central difference formula: ∂f/∂x_i ≈ (f(x + h*e_i) - f(x - h*e_i)) / (2 * h).
-
-    # TODO: vectorize using np.eye together with .apply(axis=1)?
 
     Parameters
     ----------
@@ -29,23 +27,23 @@ def numerical_multivariate_gradient(func: Func, eps: float = 1e-6) -> FuncGrad:
     """
     def func_grad(x: np.ndarray) -> np.ndarray:
         # assert x.ndim == 1 or (x.ndim==2 and x.shape[1]==1)
-        x = np.asarray(x, dtype=np.float64)
-        grad = np.zeros_like(x)
-        e = np.zeros_like(x)
-        for i in range(x.size):
-            e[i] = eps
-            grad[i] = (func(x + e) - func(x - e)) / (2.0*eps)
-            e[i] = 0
+        x_arr = np.asarray(x, dtype=np.float64)
+        n = x_arr.size
+        
+        E = np.eye(n) * eps
+        
+        f_plus = np.apply_along_axis(func, axis=1, arr=x_arr+E)
+        f_minus = np.apply_along_axis(func, axis=1, arr=x_arr-E)
+        grad = (f_plus-f_minus)- (2*eps)
         return grad
 
     return func_grad
 
 
-def numerical_multivariate_hessian(func: Func, eps: float = 1e-4) -> FuncGrad:
+def numerical_multivariate_hessian(func: Func, eps: float = 1e-4, grad: Optional[FuncGrad] = None) -> FuncGrad:
     """
     Computes the Hessian matrix of a scalar-valued multivariate function f: R^n -> R
     using central finite differences and applies a symmetrizing step G := 0.5 * (G + G^T).
-    # TODO, make use of existing grad? - look at Tommaso's implementation below.
 
     Parameters
     ----------
@@ -60,66 +58,49 @@ def numerical_multivariate_hessian(func: Func, eps: float = 1e-4) -> FuncGrad:
     FuncGrad
         A callable function that takes a 1D-numpy array `x` of shape (n,)
         and returns its (n, n) Hessian matrix H.
-    """
-    # if grad is None:
-    #     grad = _numerical_multivariate_gradient(func, eps)
+    """    
     def func_hess(x: np.ndarray) -> np.ndarray:
-        n = x.size
-        hess = np.zeros((n, n), dtype=np.float64)
-        x = np.asarray(x, dtype=np.float64)
+        x_arr = np.asarray(x, dtype=np.float64).ravel()
+        n = x_arr.size
+        E = np.eye(n) * eps
         
-        f0 = func(x)
-        eps_sq = eps ** 2
-
+        # if the function given has a predefined gradient
+        # calculate the hessian from this gradient
+        if grad is not None:
+            G_plus = np.apply_along_axis(grad, axis=1, arr=x_arr + E)
+            G_minus = np.apply_along_axis(grad, axis=1, arr=x_arr - E)
+                    
+            H = (G_plus - G_minus) / (2.0 * eps)
+            return 0.5 * (H + H.T)
+        
+        # otherwise the hessian is found from the function directly
+        hess = np.zeros((n, n), dtype=np.float64)
+        f0 = func(x_arr)
+        
         # Diagonal elements: d^2f / dx_i^2
-        # second order central differences
-        for i in range(n):
-            orig = x[i]
+        f_plus = np.apply_along_axis(func, axis=1, arr=x_arr + E)
+        f_minus = np.apply_along_axis(func, axis=1, arr=x_arr - E)
+        np.fill_diagonal(hess, (f_plus - 2.0 * f0 + f_minus) / (eps ** 2))
+        
+        # Off-diagonal elements using upper-triangular index pairs
+        # using 4-point central differences
+        if n > 1:
+            i, j = np.triu_indices(n, k=1)
+            E_i, E_j = E[i], E[j]
 
-            x[i] = orig + eps
-            f_plus = func(x)
+            f_pp = np.apply_along_axis(func, axis=1, arr=x_arr + E_i + E_j)
+            f_pm = np.apply_along_axis(func, axis=1, arr=x_arr + E_i - E_j)
+            f_mp = np.apply_along_axis(func, axis=1, arr=x_arr - E_i + E_j)
+            f_mm = np.apply_along_axis(func, axis=1, arr=x_arr - E_i - E_j)
 
-            x[i] = orig - eps
-            f_minus = func(x)
-
-            x[i] = orig
-            hess[i, i] = (f_plus - 2.0 * f0 + f_minus) / eps_sq
-
-        # Off-diagonal elements: d^2f / (dx_i dx_j)
-        # uses 4-point central differences
-        for i in range(n):
-            for j in range(i + 1, n):
-                orig_i, orig_j = x[i], x[j]
-
-                x[i], x[j] = orig_i + eps, orig_j + eps
-                f_pp = func(x)
-
-                x[j] = orig_j - eps
-                f_pm = func(x)
-
-                x[i], x[j] = orig_i - eps, orig_j + eps
-                f_mp = func(x)
-
-                x[j] = orig_j - eps
-                f_mm = func(x)
-
-                x[i], x[j] = orig_i, orig_j
-
-                val = (f_pp - f_pm - f_mp + f_mm) / (4.0 * eps_sq)
-                hess[i, j] = val
-                hess[j, i] = val
-
-        # Check symmetry and apply symmetrizing step: G := 0.5 * (G + G^T)
-        # TODO: Why do we check for symmetry, and then apply symmetrization either way?
-        #       Also, with the way hess is given values above, it is always symmetric.
-        if not np.allclose(hess, hess.T, rtol=1e-5, atol=1e-8):
-            hess = 0.5 * (hess + hess.T)
-        else:
-            hess = 0.5 * (hess + hess.T)
-
-        return hess
+            off_diag = (f_pp - f_pm - f_mp + f_mm) / (4.0 * (eps ** 2))
+            hess[i, j] = off_diag
+            hess[j, i] = off_diag
+        
+        return 0.5 * (hess + hess.T)
 
     return func_hess
+
 
 
 """  Tommaso's:

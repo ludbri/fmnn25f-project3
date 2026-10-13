@@ -29,12 +29,13 @@ class QuasiNewtonMethod(NewtonWithLineSearchMethod):
 
         dir = self.find_descent_direction()
         alfa_k = self.linesearch(dir)
-        print("s_k", s_k)
-        print(alfa_k)
         x_new = self.x + alfa_k*s_k
-        print("x", self.x)
         self.update_hessian(x_new)
-        print("H:", self.H)
+        if self.verbose:
+            print("s_k", s_k)
+            print(alfa_k)
+            print("x", self.x)
+            print("H:", self.H)
 
         return x_new
 
@@ -73,6 +74,7 @@ class GoodBroyden(QuasiNewtonMethod):
         numerator = delta_k@(self.H@gamma_k)
         self.H = self.H + (np.outer((delta_k - self.H@gamma_k), (delta_k@self.H))/(numerator))
         return self
+
 
 class BadBroyden(QuasiNewtonMethod):
     """Broyden's "bad" method.

@@ -1,6 +1,8 @@
 
+from rosenbrock import rosenbrock_problem
 from optmethods_baseclass import OptMethod
 import numpy as np
+import matplotlib.pyplot as plt
 
 
 class NewtonsMethod(OptMethod):
@@ -150,24 +152,20 @@ class NewtonWithPowellWolfe(NewtonWithLineSearchMethod):
         return am
 
 
-def test_exact_linesearch(exact=True):
-    problem = rosenbrock_problem
-    if exact:
+def test_exact_linesearch(
+        problem = rosenbrock_problem,
+        method = None,
+        title = "Rosenbrock - Newton with exact linesearch",
+        x0 = None,
+        **solve_kwargs
+    ):
+    if method is None: 
         method = NewtonWithLineSearchMethod(problem)
-    else:
-        # Implementation here uses lecture's notation.
-        # Note, book uses swapped sigma and rho compared to the optimization lecture.
-        method = NewtonWithPowellWolfe(problem, sigma=0.01, rho=0.1, alpha_start=0.1)
+    solve_kwargs['x0'] = np.asarray(x0) if (x0 is not None) else np.random.rand(problem.input_shape)
 
-    kwargs = {
-        "x0" : np.array([-1.2, 1.0]),
-        "residual_tol" : 1e-8,
-        "cauchy_tol" : 1e-5,
-        "max_steps" : 20
-    }
-    xmin = method.solve(**kwargs)
+    xmin = method.solve(**solve_kwargs)
     print("Computed minimum:", xmin)
-    print("f(x):", rosenbrock(xmin))
+    print("f(x):", problem(xmin))
     print("Iterations:", method.steps)
 
     h = np.asarray(method.x_history)
@@ -175,13 +173,13 @@ def test_exact_linesearch(exact=True):
     yy = np.linspace(-1, 3, 400)
     XY = np.meshgrid(xx, yy)
     X,Y = XY
-    Z = rosenbrock(XY)
+    Z = problem(XY)
 
     plt.contour(X, Y, Z, levels=np.logspace(-1, 3.5, 18))
     plt.plot(h[:,0], h[:,1], "o-")
     plt.plot(1, 1, "*", markersize=14)
     plt.xlabel("x1"); plt.ylabel("x2")
-    plt.title(f"Rosenbrock - Newton with {"exact" if exact else "Powell-Wolfe"} line search")
+    plt.title(title)
     plt.tight_layout()
     plt.savefig("rosenbrock_newton_linesearch.png", dpi=150)
     plt.show()
@@ -190,6 +188,22 @@ def test_exact_linesearch(exact=True):
 if __name__ == "__main__":
     from rosenbrock import rosenbrock, rosenbrock_problem
     import matplotlib.pyplot as plt
+    solve_kwargs = {
+        "residual_tol" : 1e-8,
+        "cauchy_tol" : 1e-5,
+        "max_steps" : 20
+    }
 
-    test_exact_linesearch(exact=True)
-    test_exact_linesearch(exact=False)
+    test_exact_linesearch(rosenbrock_problem,
+                          NewtonWithLineSearchMethod(rosenbrock_problem),
+                          "Rosenbrock with exact linesearch",
+                          x0=[-1.2,1.0],
+                          **solve_kwargs)
+    test_exact_linesearch(rosenbrock_problem,
+                          NewtonWithPowellWolfe(rosenbrock_problem,
+                                                sigma=0.01,
+                                                rho=0.1,
+                                                alpha_start=0.1),
+                          "Rosenbrock with exact linesearch",
+                          x0=[-1.2,1.0],
+                          **solve_kwargs)
