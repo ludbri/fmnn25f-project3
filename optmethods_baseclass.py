@@ -7,7 +7,7 @@ from optproblem_class import OptProblem, numerical_multivariate_hessian
 
 class OptMethod:
     '''
-    General class for optmization method, this class is inherited from by all optimizing methods
+    Base class for optimization method, this class is inherited by all optimizing methods
 
     Parameters
     ----------    
@@ -21,7 +21,7 @@ class OptMethod:
 
     def specific_solve(self):
         """
-        Defined in each subclass
+        Helper method for solve, defined in each subclass.
         """
         raise NotImplementedError()
 
@@ -32,8 +32,10 @@ class OptMethod:
         x0: float
             The starting solution
 
-        residual tol is that the change in function value between iterations should be sufficiently small.
-        cauchy tol is that the change in solution value between iterations should be sufficiently small.
+        residual_tol: float
+            is that the change in function value between iterations should be sufficiently small.
+        cauchy_tol: float 
+            is that the change in solution value between iterations should be sufficiently small.
         '''
         fdiff = float('inf')
         xdiff = float('inf')

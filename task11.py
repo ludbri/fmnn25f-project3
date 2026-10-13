@@ -12,6 +12,12 @@ from rosenbrock import rosenbrock, rosenbrock_grad
 # ---------------- Tasks 10-11: supplied Chebyquad ----------------
 
 def task11():
+    """
+    Function to run Task 11. 
+
+    The given Chebyquad function is tested on all our optimization methods and
+    compared at the end.
+    """
 
     print('\nTASK 11: Chebyquad, our BFGS vs scipy.optimize.fmin_bfgs')
 

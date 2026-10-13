@@ -4,7 +4,15 @@ import numpy as np
 
 
 class NewtonsMethod(OptMethod):
+    """
+    Newton's method for unconstrained optimization
+
+    Every iteration solves ``G(x) * s = - g(x)`` and moves to ``x + s``.
+    Has no step length control.
+
+    """
     def specific_solve(self):
+
         # Evaluate gradient and Hessian at current x
         g = self.gradient(self.x)
         G = self.hessian(self.x)
@@ -16,7 +24,17 @@ class NewtonsMethod(OptMethod):
         
 
 class NewtonWithLineSearchMethod(NewtonsMethod):
+    """Newton's method with an exact (golden-section) line search.
+
+    Uses the Newton direction if it is a descent direction, otherwise it
+    falls back to steepest descent.
+    """
+
     def find_descent_direction(self):
+        """
+        Try finding the Newton direction, if unsolvable return the
+        negative gradient as direction.
+        """
         grad = self.gradient(self.x)
         hess = self.hessian(self.x)
         try:
@@ -30,6 +48,11 @@ class NewtonWithLineSearchMethod(NewtonsMethod):
         return dir
 
     def linesearch(self, dir):
+        """Return a step length ``alpha`` minimizing ``prob(x + alpha*dir)``
+        
+        Uses Golden-section minimization to find alpha, return 0.0 if no
+        decreasing step is found.
+        """
         phi = lambda a: self.prob(self.x + a*dir)
         # Bracket the 1-D minimum.
         b = 1.0
@@ -61,12 +84,25 @@ class NewtonWithLineSearchMethod(NewtonsMethod):
         return (left+right)/2
 
     def specific_solve(self):
+        """Return ``x + alpha * dir`` with ``alpha`` from the line search."""
         dir = self.find_descent_direction()
         alpha = self.linesearch(dir)
         return self.x + alpha*dir
 
 
 class NewtonWithPowellWolfe(NewtonWithLineSearchMethod):
+    """Netwon's method with Powell-Wollfe conditions
+        
+        Parameters:
+            prob: OptProblem
+                The optimization problem (objective with gradient/Hessian).\n
+            sigma: float
+                Armijo parameter, must satisfy ``0 < sigma < 0.5``.\n
+            rho: float
+                Curvature parameter, must satisfy ``sigma < rho < 1``.\n
+            alpha_start: float
+                 Initial trial step length, must be positive.\n
+    """
     def __init__(self, prob, sigma, rho, alpha_start):
         super().__init__(prob)
         assert 0<sigma<0.5
@@ -80,6 +116,7 @@ class NewtonWithPowellWolfe(NewtonWithLineSearchMethod):
         """
         Implementing a Powell-Wolfe line search based on the lecture notes.
         Note: the book by Fletcher swaps the use of sigma and rho.
+
         """
         phi = lambda a: self.prob(self.x + a*dir)
         phi_grad = lambda a: np.dot(self.gradient(self.x + a*dir), dir)
