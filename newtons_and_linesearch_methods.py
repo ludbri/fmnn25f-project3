@@ -111,8 +111,8 @@ class NewtonWithPowellWolfe(NewtonWithLineSearchMethod):
             alpha_start: float
                  Initial trial step length, must be positive.\n
     """
-    def __init__(self, prob, sigma, rho, alpha_start):
-        super().__init__(prob)
+    def __init__(self, prob, sigma, rho, alpha_start, verbose=True):
+        super().__init__(prob, verbose)
         assert 0<sigma<0.5
         assert sigma<rho<1
         assert alpha_start > 0
