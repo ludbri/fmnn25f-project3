@@ -13,6 +13,9 @@ class NewtonsMethod(OptMethod):
     Has no step length control.
 
     """
+    def __init__(self, prob, verbose=True):
+        super().__init__(prob, verbose)
+    
     def specific_solve(self):
 
         # Evaluate gradient and Hessian at current x
@@ -31,6 +34,9 @@ class NewtonWithLineSearchMethod(NewtonsMethod):
     Uses the Newton direction if it is a descent direction, otherwise it
     falls back to steepest descent.
     """
+    
+    def __init__(self, prob, verbose=True):
+        super().__init__(prob, verbose)
 
     def find_descent_direction(self):
         """

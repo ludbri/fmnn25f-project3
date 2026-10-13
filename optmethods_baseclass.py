@@ -62,11 +62,13 @@ class OptMethod:
             
             # compute residual and cauchy tolerance
             fdiff = np.abs(self.f_history[-1] - self.f_history[-2])
-            xdiff = np.linalg.norm(self.x - self.x_history[-1])
+            xdiff = np.linalg.norm(self.x_history[-1] - self.x_history[-2])
 
-            if self.verbose:
-                if fdiff < residual_tol:    print("fdiff > residual_tol", fdiff)
-                if xdiff < cauchy_tol:      print("xdiff > cauchy_tol", xdiff)
-                if self.steps > max_steps:       print("steps < max_steps", self.steps)
-
+                
+        if self.verbose:
+            if fdiff < residual_tol:         print("fdiff > residual_tol, fdiff:", fdiff)
+            if xdiff < cauchy_tol:           print("xdiff > cauchy_tol, xdiff", xdiff)
+        
+            print("steps < max_steps, steps", self.steps)
+        
         return self.x

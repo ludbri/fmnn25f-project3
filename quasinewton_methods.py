@@ -15,8 +15,8 @@ class QuasiNewtonMethod(NewtonWithLineSearchMethod):
         f: The optimization problem.
         *args: Passed on to the parent class.
     """
-    def __init__(self, f, *args):
-        super().__init__(f, *args)
+    def __init__(self, f, verbose=True):
+        super().__init__(f, verbose)
         self.H = np.eye(self.prob.input_shape)
 
     def specific_solve(self):
@@ -25,18 +25,39 @@ class QuasiNewtonMethod(NewtonWithLineSearchMethod):
         Searches along ``-H @ g`` with a line search, then calls
         :meth:`update_hessian` with the new point. Returns the new iterate.
         """ 
-        s_k = -1*(self.H@self.gradient(self.x))
-
-        dir = self.find_descent_direction()
-        alfa_k = self.linesearch(dir)
-        x_new = self.x + alfa_k*s_k
+        
+        g = self.gradient(self.x)
+        
+        direction = self.find_descent_direction()
+        
+        # broken or non-descent direction: reset to steepest descent
+        if not np.all(np.isfinite(direction)) or g @ direction >= 0:
+            self.H = np.eye(self.prob.input_shape)
+            direction = -g
+        
+        
+        alfa_k = self.linesearch(direction)
+        
+        # line search failed with a non-trivial H: retry once with steepest descent
+        if alfa_k == 0.0 and not np.allclose(self.H, np.eye(self.prob.input_shape)):
+            self.H = np.eye(self.prob.input_shape)
+            direction = -g
+            alfa_k = self.linesearch(direction)
+            
+        
+        x_new = self.x + alfa_k*direction
+        
         self.update_hessian(x_new)
+        
+        if not np.all(np.isfinite(self.H)):
+            self.H = np.eye(self.prob.input_shape)
+        
         if self.verbose:
-            print("s_k", s_k)
-            print(alfa_k)
-            print("x", self.x)
-            print("H:", self.H)
-
+            print("step direction: ", direction)
+            print("alpha: ", alfa_k)
+            print("x: ", self.x)
+            print("H: ", self.H)
+        
         return x_new
 
     
@@ -64,8 +85,8 @@ class GoodBroyden(QuasiNewtonMethod):
     Broyden's secant update. The update is not symmetric, so ``H`` 
     is not guaranteed to stay symmetric or positive definite.
     """
-    def __init__(self, f, *args):
-            super().__init__(f, *args)
+    def __init__(self, f, verbose=True):
+            super().__init__(f, verbose)
 
     def update_hessian(self, x_new):
         """Apply the good Broyden rank-one update to ``self.H``."""
@@ -83,8 +104,8 @@ class BadBroyden(QuasiNewtonMethod):
     by correcting along ``gamma``. Usually performs worse than
     :class:`GoodBroyden`; not symmetric.
     """
-    def __init__(self, f, *args):
-        super().__init__(f, *args)
+    def __init__(self, f, verbose=True):
+        super().__init__(f, verbose)
 
     def update_hessian(self, x_new):
             """Apply the bad Broyden rank-one update to ``self.H``."""
@@ -100,8 +121,8 @@ class SymmetricBroyden(QuasiNewtonMethod):
     Symmetric rank-one update satisfying the secant condition. ``H`` stays
     symmetric but is not guaranteed to be positive definite.
     """
-    def __init__(self, f, *args):
-        super().__init__(f, *args)
+    def __init__(self, f, verbose=True):
+        super().__init__(f, verbose)
 
     def update_hessian(self, x_new):
         """Apply the symmetric rank-one update to ``self.H``."""
@@ -121,8 +142,8 @@ class DFP(QuasiNewtonMethod):
     stays positive definite as long as ``delta @ gamma > 0``, which an
     appropriate line search guarantees.
     """
-    def __init__(self, f, *args):
-        super().__init__(f, *args)
+    def __init__(self, f, verbose=True):
+        super().__init__(f, verbose)
 
     def update_hessian(self, x_new):
         """Apply the DFP rank-two update to ``self.H``."""
@@ -142,8 +163,8 @@ class BFGS(QuasiNewtonMethod):
     when ``delta @ gamma > 0`` and is more tolerant of inexact line
     searches than :class:`DFP`."""
 
-    def __init__(self, f, *args):
-        super().__init__(f, *args)
+    def __init__(self, f, verbose=True):
+        super().__init__(f, verbose)
         self.approx_error = []
 
     def update_hessian(self, x_new):
