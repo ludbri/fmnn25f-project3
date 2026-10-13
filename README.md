@@ -12,7 +12,7 @@ Project files for the third project in the course in advanced numerical algorith
 - `test` - tests the functionality of the quasi-Newton methods.
 
 # Contributions
-- Anna:
+- Anna: created functions for the quasi-newton methods, as well as 11, 12
 - Annelies: Created functions for numerical gradient, Hessian, and classical Newton method. Helped with the README
 - Juan: Helped with tasks 9 and 11 as well as the documentation for the code.
 - Ludwig
