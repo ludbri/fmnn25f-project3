@@ -12,7 +12,7 @@ Project files for the third project in the course in advanced numerical algorith
 - `test` - tests the functionality of the quasi-Newton methods.
 
 # Contributions
-- Anna: created functions for the quasi-newton methods, as well as 11, 12
+- Anna: created functions for the quasi-newton methods, as well as doing task 11, 12
 - Annelies: Created functions for numerical gradient, Hessian, and classical Newton method. Helped with the README
 - Juan: Helped with tasks 9 and 11 as well as the documentation for the code.
 - Ludwig
@@ -20,11 +20,10 @@ Project files for the third project in the course in advanced numerical algorith
 
 
 # TODO:
-- readme!
+- readme (Juan and Annelies)
 - in Optproblem TODO (Annelies)
 - finishing task 12 ie plotting (Tommaso)
 - documentation (Juan)
-- look over the Broyden methods (Anna)
+- look over the Broyden methods (Anna) DONE!
 - finish task 11
-- readme (Juan and Annelies)
 - ipy notebook to compile answers to questions (Ludwig)
