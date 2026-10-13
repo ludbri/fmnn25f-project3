@@ -25,5 +25,5 @@ Project files for the third project in the course in advanced numerical algorith
 - finishing task 12 ie plotting (Tommaso)
 - documentation (Juan)
 - look over the Broyden methods (Anna) DONE!
-- finish task 11
+- finish task 11 DONE!
 - ipy notebook to compile answers to questions (Ludwig)
