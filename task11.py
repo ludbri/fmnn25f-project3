@@ -11,16 +11,6 @@ from newtons_and_linesearch_methods import NewtonsMethod, NewtonWithLineSearchMe
 # ---------------- Tasks 10-11: supplied Chebyquad ----------------
 
 def task11():
-<<<<<<< HEAD
-    """
-    Function to run Task 11. 
-
-    The given Chebyquad function is tested on all our optimization methods and
-    compared at the end.
-    """
-
-=======
->>>>>>> 35943df652ada31cd56d7ee22d5e07e7eeafb0df
     print('\nTASK 11: Chebyquad, our BFGS vs scipy.optimize.fmin_bfgs')
 
     for n in (4,8,11):
