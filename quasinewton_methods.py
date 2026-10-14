@@ -163,9 +163,10 @@ class BFGS(QuasiNewtonMethod):
     when ``delta @ gamma > 0`` and is more tolerant of inexact line
     searches than :class:`DFP`."""
 
-    def __init__(self, prob, verbose=True):
+    def __init__(self, prob, verbose=True, test_approximation=False):
         super().__init__(prob, verbose)
         self.approx_error = []
+        self.test_approximation = test_approximation
 
     def update_hessian(self, x_new):
         """Apply the BFGS rank-two update to ``self.H``."""
@@ -177,7 +178,8 @@ class BFGS(QuasiNewtonMethod):
     
         self.H = self.H + term_1 - term_2 
         # add an optional thing here
-        #self.approx_error.append(self.test_BFGS_approx(x_new))
+        if self.test_approximation:
+            self.approx_error.append(self.test_BFGS_approx(x_new))
 
     def test_BFGS_approx(self, x_new):
         """
