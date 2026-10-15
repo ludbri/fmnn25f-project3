@@ -17,7 +17,7 @@ class OptMethod:
     def __init__(self, prob: OptProblem, verbose=True):
         self.prob = prob
         self.gradient = self.prob.grad
-        self.hessian = numerical_multivariate_hessian(self.prob.f)
+        self.hessian = numerical_multivariate_hessian(self.prob.f, grad=prob.grad)
         self.verbose=verbose
 
     def specific_solve(self):

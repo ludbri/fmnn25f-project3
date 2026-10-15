@@ -59,45 +59,53 @@ def numerical_multivariate_hessian(func: Func, eps: float = 1e-4, grad: Optional
         A callable function that takes a 1D-numpy array `x` of shape (n,)
         and returns its (n, n) Hessian matrix H.
     """    
-    def func_hess(x: np.ndarray) -> np.ndarray:
-        x_arr = np.asarray(x, dtype=np.float64).ravel()
-        n = x_arr.size
-        E = np.eye(n) * eps
-        
-        # if the function given has a predefined gradient
-        # calculate the hessian from this gradient
-        if grad is not None:
+    # if the function given has a predefined gradient
+    # calculate the hessian from this gradient
+    if grad is not None:
+        def func_hess(x: np.ndarray) -> np.ndarray:
+            x_arr = np.asarray(x, dtype=np.float64).ravel()
+            n = x_arr.size
+            E = np.eye(n) * eps
+            
+            # if the function given has a predefined gradient
+            # calculate the hessian from this gradient
             G_plus = np.apply_along_axis(grad, axis=1, arr=x_arr + E)
             G_minus = np.apply_along_axis(grad, axis=1, arr=x_arr - E)
                     
             H = (G_plus - G_minus) / (2.0 * eps)
             return 0.5 * (H + H.T)
-        
-        # otherwise the hessian is found from the function directly
-        hess = np.zeros((n, n), dtype=np.float64)
-        f0 = func(x_arr)
-        
-        # Diagonal elements: d^2f / dx_i^2
-        f_plus = np.apply_along_axis(func, axis=1, arr=x_arr + E)
-        f_minus = np.apply_along_axis(func, axis=1, arr=x_arr - E)
-        np.fill_diagonal(hess, (f_plus - 2.0 * f0 + f_minus) / (eps ** 2))
-        
-        # Off-diagonal elements using upper-triangular index pairs
-        # using 4-point central differences
-        if n > 1:
-            i, j = np.triu_indices(n, k=1)
-            E_i, E_j = E[i], E[j]
 
-            f_pp = np.apply_along_axis(func, axis=1, arr=x_arr + E_i + E_j)
-            f_pm = np.apply_along_axis(func, axis=1, arr=x_arr + E_i - E_j)
-            f_mp = np.apply_along_axis(func, axis=1, arr=x_arr - E_i + E_j)
-            f_mm = np.apply_along_axis(func, axis=1, arr=x_arr - E_i - E_j)
-
-            off_diag = (f_pp - f_pm - f_mp + f_mm) / (4.0 * (eps ** 2))
-            hess[i, j] = off_diag
-            hess[j, i] = off_diag
+    else:
+        def func_hess(x: np.ndarray) -> np.ndarray:
+            x_arr = np.asarray(x, dtype=np.float64).ravel()
+            n = x_arr.size
+            E = np.eye(n) * eps
         
-        return 0.5 * (hess + hess.T)
+            # otherwise the hessian is found from the function directly
+            hess = np.zeros((n, n), dtype=np.float64)
+            f0 = func(x_arr)
+            
+            # Diagonal elements: d^2f / dx_i^2
+            f_plus = np.apply_along_axis(func, axis=1, arr=x_arr + E)
+            f_minus = np.apply_along_axis(func, axis=1, arr=x_arr - E)
+            np.fill_diagonal(hess, (f_plus - 2.0 * f0 + f_minus) / (eps ** 2))
+            
+            # Off-diagonal elements using upper-triangular index pairs
+            # using 4-point central differences
+            if n > 1:
+                i, j = np.triu_indices(n, k=1)
+                E_i, E_j = E[i], E[j]
+
+                f_pp = np.apply_along_axis(func, axis=1, arr=x_arr + E_i + E_j)
+                f_pm = np.apply_along_axis(func, axis=1, arr=x_arr + E_i - E_j)
+                f_mp = np.apply_along_axis(func, axis=1, arr=x_arr - E_i + E_j)
+                f_mm = np.apply_along_axis(func, axis=1, arr=x_arr - E_i - E_j)
+
+                off_diag = (f_pp - f_pm - f_mp + f_mm) / (4.0 * (eps ** 2))
+                hess[i, j] = off_diag
+                hess[j, i] = off_diag
+            
+            return 0.5 * (hess + hess.T)
 
     return func_hess
 

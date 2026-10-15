@@ -1,5 +1,6 @@
 
 from newtons_and_linesearch_methods import NewtonWithLineSearchMethod
+from optproblem_class import numerical_multivariate_hessian
 import numpy as np
 import scipy
 
@@ -185,8 +186,11 @@ class BFGS(QuasiNewtonMethod):
         """
         Return the Frobenius-norm error of ``H`` versus the exact inverse Hessian at ``x_new``.
         """
-        exact_H = scipy.differentiate.hessian(self.prob.f, x_new)
-        exact_H = scipy.linalg.inv(exact_H.ddf)
+        # exact_H = scipy.differentiate.hesian(self.prob.f, x_new)
+        # exact_H = scipy.linalg.inv(exact_H.ddf)
+
+        exact_H = self.hessian(x_new)
+        exact_H = scipy.linalg.inv(exact_H)
 
         approx_error = np.linalg.norm(exact_H - self.H, 'fro')
         return approx_error

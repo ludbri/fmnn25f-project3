@@ -29,15 +29,5 @@ Project files for the third project in the course in advanced numerical algorith
 - Anna: created functions for the quasi-newton methods, as well as doing task 11, 12
 - Annelies: Created functions for numerical gradient, Hessian, and classical Newton method. Helped with the README
 - Juan: Helped with tasks 9 and 11 as well as the documentation for the code.
-- Ludwig: Drafting Class structure, base optmethod class, inexact line search, jupyter notebook to gather results. Some work on readme.
-- Tommaso: exact line search. linesearching testing code and task 5.
-
-
-# TODO:
-- readme (Juan and Annelies)
-- in Optproblem TODO (Annelies)
-- finishing task 12 ie plotting (Tommaso)
-- documentation (Juan)
-- look over the Broyden methods (Anna) DONE!
-- finish task 11 DONE!
-- ipy notebook to compile answers to questions (Ludwig) Mostly done, 12 needs polish for cheby.
+- Ludwig: Drafting Class structure, base optmethod class, inexact line search, jupyter notebook to gather results. Some work on readme. Worked on, made plots and summaries for task 11&12.
+- Tommaso: exact line search. linesearch testing code and task 5.
