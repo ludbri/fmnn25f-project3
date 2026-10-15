@@ -7,7 +7,7 @@ Func = Callable[[np.array], float]
 FuncGrad = Callable[[np.array], float]
 
 
-def numerical_multivariate_gradient(func: Func, eps: float = 1e-6) -> FuncGrad:
+def numerical_multivariate_gradient(func: Func, eps: float = 1e-10) -> FuncGrad:
     """
     Computes the gradient of a scalar-valued multivariate function f: R^n -> R
     using the central difference formula: ∂f/∂x_i ≈ (f(x + h*e_i) - f(x - h*e_i)) / (2 * h).
@@ -40,7 +40,7 @@ def numerical_multivariate_gradient(func: Func, eps: float = 1e-6) -> FuncGrad:
     return func_grad
 
 
-def numerical_multivariate_hessian(func: Func, eps: float = 1e-4, grad: Optional[FuncGrad] = None) -> FuncGrad:
+def numerical_multivariate_hessian(func: Func, eps: float = 1e-10, grad: Optional[FuncGrad] = None) -> FuncGrad:
     """
     Computes the Hessian matrix of a scalar-valued multivariate function f: R^n -> R
     using central finite differences and applies a symmetrizing step G := 0.5 * (G + G^T).
