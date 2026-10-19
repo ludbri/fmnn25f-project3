@@ -34,7 +34,7 @@ def numerical_multivariate_gradient(func: Func, eps: float = 1e-10) -> FuncGrad:
         
         f_plus = np.apply_along_axis(func, axis=1, arr=x_arr+E)
         f_minus = np.apply_along_axis(func, axis=1, arr=x_arr-E)
-        grad = (f_plus-f_minus)- (2*eps)
+        grad = (f_plus-f_minus) / (2*eps)
         return grad
 
     return func_grad
